@@ -1,0 +1,618 @@
+﻿<!-- Any section element inside of this container is displayed as a slide -->
+<div class="slides">
+    <section data-markdown>
+	# Computer Vision
+	## Image Segmentation
+	---
+	Roman Golovanov
+    </section>
+	
+	<section data-markdown>
+	## Agenda
+	
+	1. Introduction
+	1. Applications
+	1. Fundamentals
+	1. Encoding Regions
+	1. Algorithms:
+	    * Thresholding
+	    * Region-growing
+	    * Splitting and Merging
+	    * Watershed
+	    * Clustering
+	    * Texture segmentation
+	    * Interactive segmentation
+	1. Benchmarks
+	1. Resources
+	</section>
+	
+	<section>
+		<section>
+		<h2>Introduction</h2>
+		
+		<i>Image Segmentation</i> is the process of partitioning a digital image into multiple segments (sets of pixels - super-pixels). 
+		</br>
+		The goal is to simplify and/or change the representation of an image into something that is more meaningful and easier to analyze.
+		</br>
+		<img class="stretch" src="./img02/intro.png"></img>
+		</section>
+		
+		<section>
+		<h3>Applications: Content-based image retrieval (CBIR)</h3>
+		<img class="stretch" src="./img02/appSearch.png"></img>		
+		</section>
+
+		<section>
+		<h3>Applications: Medicine</h3>
+		<img class="stretch" src="./img02/appMedicine.png"></img>		
+		</section>
+
+		<section>
+		<h3>Applications: Cartography</h3>
+		<img class="stretch" src="./img02/appMaps.png"></img>		
+		</section>
+		
+		<section>
+		<h3>Applications: Video surveillance</h3>
+		<img class="stretch" src="./img02/appPed.png"></img>		
+		</section>
+		
+		<section>
+		<h3>Applications: Video surveillance 2</h3>
+		<img class="stretch" src="./img02/appTraffic.png"></img>		
+		</section>
+	</section>
+	
+	<section>
+		<section data-markdown>
+		## Fundamentals
+		### Identifying Regions
+		
+		1. Regions of an image segmentation should be uniform and homogeneous with respect to some characteristic, such as gray level, color, or texture.
+		2. Region interiors should be simple and without many small holes.
+		3. Adjacent regions of a segmentation should have signigicantly different values with respect to the characteristic on which they are uniform.
+		4. Boundaries of each segment shoould be smooth, not ragged, and should be spatially accurate.
+		</section>
+		
+		<section>
+		<h3>Identifying Regions</h3>
+		<img class="stretch" src="./img02/sampleElephant.png"></img>
+		</section>
+		
+		<section data-markdown>
+		### Formal Definition
+		
+		**Segmentation** - is a process, that divides $R$ into $n$ subregions $R_1, R_2,...,R_n$ such that:
+		1. $\cup^n_{i=1}R_i = R $
+		2. $R_i$ is a connected for each $i = 1, 2,..., n$ -(4-directions or 8-directions)
+		3. $ R_i \cap R_j = \varnothing$ for all $i$ and $j$, $i \ne j$
+		4. $ Q(R_i) = TRUE $ for each $i = 1, 2,..., n$
+		5. $ Q(R_i \cup R_j) = FALSE $ for any adjacent regions $R_i$ и $R_j$ - (two adjacent regions shall be different in terms of $Q$)
+
+		Here $ Q(R_k) $ is a predicate that indicates some property over the region.
+		
+		**Adjacent regions** are regions which produces connected set after their union.
+		
+		</section>		
+	</section>
+	
+	<section>
+		<section data-markdown>
+		## Encoding Regions
+		
+		Each algorithm that produces regions has to have a way to store them for future use and processing.
+		
+		1. Overlays
+		2. Labeled Images
+		3. Boundary Coding
+		4. Quad Trees
+		5. Property Tables		
+		</section data-markdown>
+		
+		<section>
+		<h3>Overlays</h3>
+		Show regions computed from the image by overlaying some color or colors on top of the original image.
+		
+		<img class="stretch" src="./img02/overlay.png"></img>
+		</section>
+		
+		<section>
+		<h3>Labeled Images</h3>
+		Intermediate representation for regions that can also be used in further processing. First assign unique identifier for each region. Then create new image where all the pixels of a region will have its unique identifier as their pixel value.
+		
+		Pixel's connectivity/directions may depend on the region. Background may use 8-, but object may use 4-.
+		</br>
+		<img class="stretch" src="./img02/sampleLabeledImage.png"></img>
+		</section>
+
+		<section>
+		<h3>Boundary Coding</h3>
+		The idea is to represents boundaries in special data streucture instead of an image. It allows to optimize memory usage.
+		</br>
+		The simplest method is to save border pixels of each region, but more advanced approach is to use <i>Freeman chain code (1961)</i>. It encodes the information from the list of points at any desired quantization and uses less space than the original point list.
+		
+		<img class="stretch" src="./img02/sampleFreemanChainCode.png"></img>
+		</section>
+
+		<section>
+		<h3>Quad Trees</h3>
+		<img class="stretch" src="./img02/sampleQuadTreeBase.png"></img>
+		</section>
+
+		<section data-markdown>
+		### Property Tables
+		The idea is to represent region by its extracted properties. It is a table in relational database sense that has a row for each region in the image and a column for each property of interest.
+		
+		Properties can represent the size, shape, intensity, color, or texture of the region.
+		
+		Example: In CBIR system, regions might be discribed by area, ratio of minor-to-major axis of the best-fitting ellipse, two main colors, and one or more texture measures.
+
+		</section>
+	</section>
+	
+	<section>
+		<section>
+		<h2>Thresholding</h2>
+		
+		 It is the <b>simplest</b> and <b>fastest</b> method of image segmentation.
+		<img class="stretch" src="./img02/threshold01.png"></img>
+		</section>
+		
+		<section data-markdown style="text-align: left;">
+		### Definition
+		
+		$f(x,y)$ - image function,
+		
+		$p(x,y)$ - local property of the pixel (x,y),
+		
+		$T_i=T(x,y,p(x,y),f, i)$ - threshold function, where $0 \le i < N $ - index of the threshold,
+		
+		$ g(x,y) = \cases{i+1, f(x,y) > T_{i}, \\\ 0, f(x,y) \le T_0;}$ 
+
+		$g(x,y)$ - labeled image (binary if $N = 1$).
+		</section>
+		
+		<section>
+		<h3> Problems </h3>
+		<ul>
+			<li>Noise - may be reduced by preliminary filtering</li>
+			<li>Gradients - may be handled in dynamic or adaptive thresholding</li>
+			<li>Mixture of signals - may be handled in dynamic or adaptive thresholding</li>
+		</ul>
+		<img class="stretch" src="./img02/threshold02.png"></img>
+		</section>
+		<section data-markdown>
+		### Automated Thresholding
+		To make segmentation more robust, the threshold should be automatically selected by the system.
+
+		Knowledge about the objects, the application, the environment should be used to choose the threshold automatically:
+		* Intensity characteristics of the objects.
+		* Sizes of the objects.
+		* Fractions of an image occupied by the objects.
+		* Number of different types of objects appearing in an image.
+		</section>
+		
+		<section data-markdown>
+		### Automated Thresholding Methods
+		* P-tile thresholding
+		* Optimal thresholding
+		* Iterative Optimal thresholding
+		* Otsu segmentation (binarization)
+		* Mixture modelling
+		</section>
+		
+		<section data-markdown style="text-align: left;">
+		### P-tile Thresholding
+		Input information:
+		* Object is darker or lighter.
+		* Object occupies 1/p from the total image area.
+		
+		*Algorithm*: Set threshold for the intensity level such that 1/p image pixels are below it.
+		
+		$h_i=\frac{n_i}{N}$ - probability of the pixel occurence with intensity = $i$.
+		
+		* Dark object: $\frac{1}{p}=\sum_{i=0}^{T}{h_i}$.
+		
+		* Light object: $\frac{1}{p}=\sum_{i=T}^{Max}{h_i}$.
+		
+		</section>
+		
+		<section data-markdown style="text-align: left;">
+		### Optimal Thresholding
+		**Idea**: the histogram of an image is the sum of two overlapping distributions.
+		
+		**Optimal threshold**: overlapping point of these distributions corresponds to the minimum probability between the maxima of 2 distributions.
+		
+		**Problem**: distributions are unknown.		
+		</section>
+		
+		<section>
+		<h3>Optimal Thresholding (cont)</h3>
+		<img class="stretch" src="./img02/threshold03.png"></img>		
+		</section>
+		
+		<section data-markdown style="text-align: left;">
+		### Iterative Optimal Thresholding
+		Algorithm:
+		1. Choose an initial value of the T.
+		2. Segment the image with T which produce two groups: $G_1$ contains pixels with intensity $\le T$ and $G_2$ contains pixels with intensity $> T$.
+		3. Calculating avarage intensivity $\mu_1, \mu_2$ for $G_1, G_2$ respectively.
+		4. Calculating new threshold: $T = \frac{\mu_1 + \mu_2}{2}$.
+		5. Repeat 2-5 untill differense of the T for the last and previus iteration is less then some $\delta$.
+		</section>
+		
+		<section>
+		<h3>Iterative Optimal Thresholding (demo)</h3>
+		TODO: Insert DEMO of the iterative optimal thresholding
+		It shall be GIF image with 5-10 frames showing changes of the threshold.
+		<img class="stretch" src="./img02/iterOptThreshold.gif"></img>
+		</section>
+		
+		<section data-markdown>
+		###[Otsu Method](http://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=4310076)(1979)
+		**The criterion for Otsu** is the minimization of the within-group variance $\sigma^2_W$ of the two groups of pixels separated by the threshold.
+		
+		The between class variance $\sigma^2_B$ is far quicker to calculate and the threshold with the maximum between class variance also has the minimum within class variance.
+		
+		$\sigma^2_W = W_b\cdot\sigma^2_b + W_f \cdot \sigma^2_f$,
+		
+		$\mu = W_b\cdot\mu_b + W_f \cdot \mu_f$,
+		
+		$\sigma^2_B = \sigma^2 - \sigma^2_W = W_b(\mu_b - \mu)^2 + W_f \mu_f - \mu)^2 = W_bW_f(\mu_b - \mu_f)^2$,
+		
+		$b$ - background, $f$ - foreground.
+		</section>
+		
+		<section data-markdown>
+		###Otsu Method (cont)
+		####Weaknesses
+		* The method assumes that the histogram of the image is bimodal (i.e., two classes).
+		* The method breaks down when the two classes are very unequal (i.e., the classes have very different sizes):
+		    * In this case, $\sigma^2_B$ may have two maxima.
+		    * The correct maximum is not necessary the global one.
+		    * The selected threshold should correspond to a valley of the histogram.
+		* The method does not work well with variable illumination.
+		</section>
+		
+		<section>
+		<h3>Otsu Method (example)</h3>
+		<img class="stretch" src="./img02/thresholdOtsu.png"></img>
+		</section>
+		
+		<section>
+		<h3>Otsu Method (demo)</h3>
+		TODO: Insert DEMO of the Fast Otsu Method based on $\sigma^2_B$
+		It shall be GIF image with 5-10 frames showing changes of the threshold.
+		<img class="stretch" src="./img02/iterOptThreshold.gif"></img>
+		</section>
+		
+		<section data-markdown>
+		### Gaussian Mixture Modelling (GMM)
+		**Idea**: The image intensivity histogram may be interpet as a sum of probability densities of regions:
+		
+		$p(z) = P_1p_1(Z) + P_2p_2(z)$.
+		
+		$P_1, P_2$ - a priory probability of the each region. Any pixel of the image belongs to background or object region.
+		
+		$P_1 + P_2 = 1$.
+		
+		Required to choose T which minimizes the 1st type errors:		
+		$E(T) = P_1E_1(T) + P_2E_2(T)$.
+		
+		$P_1p_1(T)=P_2p_2(T)$, where $p_i=\frac{1}{\sqrt{2\pi}\sigma_i}e^{-\frac{(z-\mu_i)^2}{2\sigma_i^2}}$
+		</section>
+		
+		<section data-markdown>
+		### Gaussian Mixture Modelling (demo)
+		TODO: Insert DEMO of the GMM
+		It shall be original image, segmented image, histogram of the original image and estimated probability densities.
+		</section>
+		
+		<section>
+		<h3><a href=http://docs.opencv.org/3.1.0/d7/d4d/tutorial_py_thresholding.html>Thresholding in OpenCV</a></h3>
+		<ul>
+			<li>cv::threshold(...)</li>
+			<li>cv::adaptiveThreshold(...)</li>
+		</ul>
+		<img class="stretch" src="./img02/thresholdOpenCV.png"></img>
+		</section>		
+	</section>
+	
+	<section>
+		<section>
+		<h2> Region-growing </h2>
+		
+		Iterationally examines neighboring pixels of initial seed points and determines whether the pixel neighbors should be added to the region.
+		</br>
+		<img class="stretch" src="./img02/regionGrowing.gif"></img>	
+		</section>
+		
+		<section data-markdown>	
+		## Definition
+		
+		1. $ R = \bigcup_{i=1}^{n} {R_i} $.
+		2. $ R_i\text{ is a connected region},\text{ i}=\text{1},\text{ 2},\text{ }...,\text{n} $.
+		3. $ R_i \bigcap R_j = \varnothing \text{ for all } i=1,2,...,n $.
+		4. $ P(R_i)=TRUE\text{ for }i=1,2,...,n $.
+		5. $ P(R_i \bigcup R_j)=FALSE\text{ for any adjacent region }R_i \text{ and }R_j $.
+		
+		$ P(R_i) $ - is a logical predicate defined over the points in set $ R_i $ and $ \varnothing $ is the null set.
+		
+		$P(R) = TRUE \text{ if } |f(x,y) − \mu_R| ≤ \delta $
+		<!--
+		Comments:
+		1. Segmentation must be complete; that is, every pixel must be in a region.
+		2. Points in a region must be connected in some predefined sense.
+		3. The regions must be disjoint.
+		4. Deals with the properties that must be satisfied by the pixels in a segmented region.
+		5. Indicates that region $ R_i$ and $R_j$ are different in the sense of predicate $P$.
+		-->
+		</section>
+		
+		<section data-markdown>		
+		### Advantages
+
+		+ Region growing methods can correctly separate the regions that have the same properties we define.
+		+ Region growing methods can provide the original images which have clear edges with good segmentation results.
+		+ The concept is simple. We only need a small number of seed points to represent the property we want, then grow the region.
+		+ We can determine the seed points and the criteria we want to make.
+		+ We can choose the multiple criteria at the same time.
+		</section>
+		
+		<section data-markdown>
+		### Disadvantages
+		- Computationally expensive
+		- It is a local method with no global view of the problem.
+		- Sensitive to noise.
+		- Unless the image has had a threshold function applied to it, a continuous path of points related to colour may exist which connects any two points in the image.	
+		</section>
+
+		<section>
+		<h3>Region Growing (demo)</h3>
+		
+		TODO: Insert DEMO of the Region Growing for single seed with 4 and 8-connected pixels
+		It shall be GIF image with N frames showing region growing in time.
+		</br>
+		<iframe width="560" height="315" src="https://www.youtube.com/embed/IjK774GwRGk" frameborder="0" allowfullscreen></iframe>
+		</section>
+		
+		<section>
+		<h3>Region Growing (demo)</h3>
+		
+		TODO: Insert DEMO of the Region Growing for 2-3 seed with 4 and 8-connected pixels
+		It shall be GIF image with N frames showing region growing in time.		
+		</section>
+	</section>
+	
+	<section>
+		<section>
+		<h2>Splitting and Merging</h2>
+		
+		The top-down split-and-merge algorithm considers initially the entire image to be a single region. 
+		</br>
+		Then iteratively splits each region into subregions or merges adjacent regions until all regions become uniform or until the desired number of regions have been established
+		</br>
+		<img class="stretch" src="./img02/splitMerge01.png"></img>		
+		</section>
+		
+		<section data-markdown>		
+		###Algorithm	
+		* A common splitting strategy for a square image is to divide it recursively into smaller and smaller quadrants until, for any region $R$, the uniformity predicate $P(R) = TRUE$.
+
+		* The strategy builds a top-down quadtree: if $P(image) = FALSE$, the image is divided into four quadrants; if $P(quadrant) = FALSE$, the quadrant is divided into subquadrants; and so on.
+
+		* The splitting stage alternates with a merging stage, in which two adjacent regions $R_i$ and $R_j$ are combined into a new, larger region if the uniformity predicate for the union of these two regions, $P(R_i \bigcup R_j) = TRUE$.	
+		</section>
+
+		<section data-markdown>
+		### Demo
+		TODO: Insert DEMO of the Region Growing for single seed with 4 and 8-connected pixels
+		It shall be GIF image with N frames showing splitting and then merging regions in time.
+		![Split and Merge sample](./img02/splitMerge02.png)	
+		</section>
+	</section>
+	
+	<section>
+		<section>
+		<h2>Watershed</h2>
+		A drop of water following the gradient of an image flows along a path to finally reach a local minimum. Intuitively, the watershed of a relief correspond to the limits of the adjacent catchment basins of the drops of water.
+		</br>
+		<img class="stretch" src="./img02/watershedSurf.png"></img>
+		</section>
+		
+		<section>
+		<h3> Algorithm </h3>
+		Main goal is to find watershed lines.
+		
+		<ul>
+			<li>Imagine that each locacl minimum have a hole.</li>
+			<li>Iteratively: whole surf filled with water which unifirmly flows via hole.</li>
+			<li>Create dam if next fill produces merge of adjucent pools.</li>
+			<li>Stop when only only dam is under the water or water level = MAX.</li>
+		</ul>
+		
+		<iframe width="300" height="200" src="https://www.youtube.com/embed/C8u3yzsNjpA" frameborder="0" allowfullscreen></iframe>
+		</section>
+		
+		<section data-markdown>
+		### Formal Description
+		* $ M_1, M_2, ..., M_R $ - coordinates of local minimums of the $f(x,y)$.
+		* $ C(M_i) $ - points of the pool with local minimum in $M_i$.
+		* $ T[n] = (s,t)|g(s,t) < n $ - points with intensity < n.
+		* $ C_n(M_i)=C(M_i) \bigcap T[n] $ - points of the pool with $M_i$ under n-th water level.
+		* $ C[n] = \bigcup_{i=1}^{R}{C_n(M_i)} $ - union of all pool's parts under the n-th water level.
+
+		![Watershed cut](./img02/watershedCut.png)		
+		</section>
+		
+		<section data-markdown>
+		###Dam construction
+		Find dam using double dilatation.
+		![dam](./img02/watershedDam.png)
+		- A - Shows $ C_{n-1} (M_1) $ and $ C_n-1 (M_2) $ at step $n-1$.
+		- B - Shows $ C_n(M_1|M_2) $ at step $n$.
+		- C - Results of double dilatation at step $n-1$.
+		</section>
+		
+		<section data-markdown>
+		### Markers
+
+		![Markers](./img02/watershedMarkers.png)
+		</section>
+		
+		<section data-markdown>
+		### Demo
+		Watershed with markers		
+		![Markers](./img02/watershedMarkers.gif)
+		
+		### OpenCV Demo
+		</section>
+		
+		<section data-markdown style="text-align: left;">
+		### Advantages :
+		
+		+ Gives connected components.
+		
+		+ A priori information can be implemented in the method using markers.
+		
+		###Disadvantages :
+		
+		+ Often needs preprocessing to work well.
+		
+		+ Fragmentation or “over-segmentation” can be a problem.
+		</section>
+	</section>
+	
+	<section>
+		<section data-markdown>
+		## Clusterization
+		
+		Idea is to extract similar pixels into separate cluster.
+		
+		![Cluster](./img02/clustering.png)		
+		</section>
+		
+		<section data-markdown>
+		### K-means (sample)
+		Clustering using intensity only or color only.
+		
+		![k-means](./img02/clusteringByColor.png)
+		</section>
+
+		<section data-markdown>
+		### K-means (sample)
+		Clusters together tokens with high similarity (small distance in feature space).
+		
+		![k-means](./img02/k-meansFeatureSpace.png)
+		</section>
+
+		<section data-markdown>
+		### K-means (sample)
+		Clustering using color and spatial coherence.
+		![k-means](./img02/k-meansXY.png)
+		</section>
+		
+		<section data-markdown style="text-align: left;">
+		### K-means
+		#### Advantages :		
+		+ Very simple method (NP-hard).		
+		+ Converges to a local minimum of the error function.
+		
+		#### Disadvantages :		
+		+ Memory-intensive.		
+		+ Need to pick K.
+		+ Sensitive to initialization.
+		+ Sensitive to outliers.
+		+ Only finds “spherical”
+clusters.
+		</section>		
+	</section>
+	
+	<section>
+		<section>
+		<h2>Texture segmentation</h2>
+		The goal is to identify regions based on their texture.
+		Grey level or colour pixel values by themselves are not sufficient for segmenting natural highly-textured images like those shown below:
+		</br>
+		<img class="stretch" src="./img02/texture.png"></img>		
+		</section>
+		
+		<section>
+		<h3>Local Features Segmentation</h3>
+		
+		To find meaningful regions containing different types of homogeneous textures, specific texture measures (features) have to be used like, for example, local spatial signal statistics:
+		</br>
+		<img class="stretch" src="./img02/textureLocalFeature.png"></img>		
+		</section>
+		
+		<section>
+		<h3>Measurement</h3>
+		Texture is a spatial property that characterises groups of pixels. Simplest statistical measure is the variance of grey levels in a square n×n neighbourhood centred on a pixel:
+		</br>
+		<img class="stretch" src="./img02/featureByVariance.png"></img>		
+		</section>
+		
+		<section>
+		<h3>Bank Of Gabor Filters</h3>
+		<!--- http://scikit-image.org/docs/dev/auto_examples/plot_gabor.html --->
+		The images are filtered using the real parts of various different Gabor filter kernels. The mean and variance of the filtered images are then used as features for classification, which is based on the least squared error for simplicity.
+		</br>
+		<img class="stretch" src="./img02/gaborBank.png"></img>		
+		</section>
+	</section>
+	
+	<section>
+		<section data-markdown>
+		## Interactive Segmentation
+		
+		The user can mark desired regions.
+
+		![Interactive](./img02/interactive01.png)		
+		</section>
+		
+		<section data-markdown>
+		### Interactive Segmentation (cont)
+		
+		<!--- TODO: Describe Graph Cut
+		http://www.uio.no/studier/emner/matnat/ifi/UNIK4690/v16/forelesninger/lecture_9_1_segmentation.pdf
+		--->
+		+ [Graph Cut](https://en.wikipedia.org/wiki/Graph_cuts_in_computer_vision)
+		
+		![Interactive](./img02/interactive02.png)		
+		</section>		
+	</section>
+	
+	<section>
+		<section data-markdown>
+		## Benchmarks
+		
+		</section>
+		
+		<section data-markdown>
+		### Dataset and Benchmark
+		
+		* [The Berkeley Segmentation Dataset and Benchmark](https://www.eecs.berkeley.edu/Research/Projects/CS/vision/bsds/)
+		* [Contour Detection and Image Segmentation Resources](http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/resources.html)
+		* [A benchmark for semantic image segmentation](http://www3.ntu.edu.sg/home/asjfcai/Benchmark_Website/benchmark_index.html)
+		
+		</section>		
+	</section>
+
+	<section>		
+		<section data-markdown>
+		### Resources
+		* [Rafael С. Gonzalez, Richard E. Woods (2008): "Digital Image Processing (3rd Edition)"](http://www.imageprocessingplace.com/DIP-3E/dip3e_main_page.htm)
+		* [Linda G. Shapiro and George C. Stockman (2001): “Computer Vision”](ftp://91.193.237.1/pub/docs/linux-support/computer%20science/computer%20vision/Computer%20Vision%20-%20Linda%20Shapiro.pdf)
+		* [Wikipedia: Image Segmentation](https://en.wikipedia.org/wiki/Image_segmentation)
+		* [Otsu Threshold Segmentation](http://www.labbookpages.co.uk/software/imgProc/otsuThreshold.html)
+		* [OpenCV Thresholding](http://docs.opencv.org/3.1.0/d7/d4d/tutorial_py_thresholding.html)
+		* [Image Segmentation Lecture] (https://www.cs.auckland.ac.nz/courses/compsci773s1c/lectures/ImageProcessing-html/topic3.htm#simple)
+		* [Watershed Segmentation](http://bigwww.epfl.ch/demo/jwatershed/start.php)
+		* [Region and Edge based segmentation (2011)](http://www.uio.no/studier/emner/matnat/ifi/INF4300/h11/undervisningsmateriale/INF4300-2011-f04-segmentation.pdf)
+		</section>
+	</section>
+	
+    <section data-markdown>
+        ## Thank You!
+    </section>
+</div>
