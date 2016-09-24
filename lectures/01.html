@@ -159,15 +159,52 @@
 	<section>
 		<section data-markdown>
 		### Movement Detection
-		
-		TODO: Add application's samples
+
+		In video surveillance, motion detection refers to the capability of the surveillance system to detect motion and capture the events. 
+		Motion detection is usually a software-based monitoring algorithm which, when it detects motions will signal the surveillance camera to begin capturing the event. 
+		Also called activity detection. An advanced motion detection surveillance system can analyze the type of motion to see if it warrants an alarm.
 		</section>
 		
 		<section data-markdown>
 		### Movement Detection
-		
-		TODO: Add application's samples 2
-		</section>		
+
+		There are many approaches for motion detection in a continuous video stream.
+		All of them are based on comparing of the current video frame with one from the previous frames or with background.
+
+		One of the most common approaches is to compare the current frame with the previous one. 
+		It's useful in video compression when you need to estimate changes and to write only the changes, not the whole frame. 
+		But it is not the best one for motion detection applications. 
+		</section>
+
+		<section data-markdown>
+		### Movement Detection
+
+		![Example of the algorithm's working](img01/movdet/1.jpg)
+
+		From the above picture we can see the disadvantages of the approach. If the object is moving smoothly we'll receive small changes from frame to frame. 
+		So, it's impossible to get the whole moving object. Things become worse, when the object is moving so slowly, when the algorithms will not give any result at all.
+		</section>
+
+		<section data-markdown>
+		### Movement Detection
+
+		There is another approach. It's possible to compare the current frame not with the previous one but with the first frame in the video sequence.
+		So, if there were no objects in the initial frame, comparison of the current frame with the first one will give us the whole moving object independently of its motion speed.
+		</section>
+
+		<section data-markdown>
+		### Movement Detection
+
+		The most efficient algorithms are based on building the so called background of the scene and comparing each current frame with the background.
+
+		![Example](img01/movdet/2.jpg)
+		</section>
+
+		<section data-markdown>
+		### Movement Detection
+
+		![Motion detection](img01/movdet/3.jpg)
+		</section>
 	</section>
 	
 	<section>
