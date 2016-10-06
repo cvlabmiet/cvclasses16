@@ -1,0 +1,533 @@
+﻿<!-- Any section element inside of this container is displayed as a slide -->
+<div class="slides">
+    <section data-markdown>
+	# Computer Vision
+	## Edge Detection
+	---
+	Roman Golovanov
+    </section>
+	
+	<section data-markdown>
+	## Agenda
+	1. Introduction
+	1. Applications
+	1. Edge Detection Approaches
+	<!--
+	1. First Derivative Based
+	    * Idea (gradient maximum)
+	    * Roberts cross (1963)
+	    * Prewitt (1970)
+	    * Sobel (1968)
+	    * Kirsch (1971)
+	1. Second Derivative Based
+	    * Idea (zero crossing)
+	    * LoG Marr–Hildreth (1980)  https://www.youtube.com/watch?v=lC-IrZsdTrw
+	    * DoG
+	    * Haralik
+	1. Canny Edge Detector
+	1. Probability Based
+	    * gPb
+	-->
+	1. Post-processing
+	<!--
+	Model Fitting
+	    * Hough Transform
+	    * Lines
+	    * Circles
+	    * Shapes
+	-->
+	1. Verification	
+	1. Benchmarks
+	1. Resources
+	</section>
+	
+	<section>
+		<section data-markdown>
+		## Introduction
+		
+		The main idea of edge detection algorithms is to find where abrupt changes in the intensity of an image have occurred.
+		
+		The purpose of detecting sharp changes in image brightness is to capture important events and changes in properties of the world. Changes in intensity of the image may point to:
+		
+		* discontinuities in depth,
+		* discontinuities in surface orientation,
+		* changes in material properties and
+		* variations in scene illumination.
+		</section>
+		
+		<section>
+		<h2>Introduction</h2>
+		<a href="./img03/building_sample.png">
+		<img class="stretch" src="./img03/building_sample.png"></img></a>
+		Berkeley Segmentation Dataset: Test Image #86000
+		</section>
+		
+		<section>
+		<h2>Introduction</h2>
+		<a href="./img03/boat_sample.png">
+		<img class="stretch" src="./img03/boat_sample.png"></img></a>
+		Berkeley Segmentation Dataset: Test Image #78004
+		</section>
+		
+		<section>
+		<h2>Introduction</h2>
+		<a href="./img03/kremlin1954_sample.png">		
+		<img class="stretch" src="./img03/kremlin1954_sample.png"></img></a>
+		Spasskaya Tower before and after Sobel Operator, Moscow 1954
+		</section>
+		
+		<section>
+		<h2>Introduction</h2>
+		<a href="./img03/circut_sample.png">		
+		<img class="stretch" src="./img03/circut_sample.png"></img></a>
+		Debugging Circut before and after Sobel Operator, Elvees, Zelenograd
+		</section>		
+	</section>
+	
+	<section>
+		<section data-markdown>
+		## Applications
+		
+		Edge Detection algorithms are used in various applications as anintermediate step of information retrevial procedure.		
+		</section>
+		
+		<section>
+		<h2>Applications</h2>
+		Edge detection on satallite images:
+		<img class="stretch" src="./img03/satallite_app.png"></img>
+		</section>
+		
+		<section>
+		<h2>Applications</h2>
+		Edge detection for finding car plate:
+		<img class="stretch" src="./img03/car_plate_app.jpg"></img>
+		</section>
+	
+		<section>
+		<h2>Applications</h2>
+		Edge detection for tracking the lane:
+		<img class="stretch" src="./img03/lane_app.png"></img>
+		</section>	
+	</section>
+	
+	<section>
+		<section data-markdown>
+		## Edge Detection Approaches
+		
+		* First Derivative Based ([Roberts](https://en.wikipedia.org/wiki/Roberts_cross), [Prewitt](https://en.wikipedia.org/wiki/Prewitt_operator), [Sobel](https://en.wikipedia.org/wiki/Sobel_operator), [Canny](https://en.wikipedia.org/wiki/Canny_edge_detector), etc)
+		* Second Derivative Based ([LoG](https://en.wikipedia.org/wiki/Marr%E2%80%93Hildreth_algorithm), [DoG](https://en.wikipedia.org/wiki/Difference_of_Gaussians), [Haralick](http://ieeexplore.ieee.org/document/4767475/), etc)
+		* Probability Based ([gPb](https://github.com/hrichardlee/gPb-junctions))
+		</section>
+		
+		<section>
+		<h2>Edge Detection Approaches</h2>
+		<a href="./img03/Fig1_Square.png" class="stretch">		
+		<img class="stretch" src="./img03/Fig1_Square.png"></img></a>
+		</section>
+		
+		<section>
+		<h2>Edge Detection Approaches</h2>
+		<a href="./img03/Fig1_Kremlin.png" class="stretch">		
+		<img class="stretch" src="./img03/Fig1_Kremlin.png"></img></a>
+		</section>		
+	</section>
+	
+	<section>
+		<section>
+		<h2>1st Derivative Based Detectors</h2>
+		<img class="stretch" src="./img03/1stDerivativeApproach.png"></img>
+		</section>
+		
+		<section data-markdown>
+		## Definitions
+		* Gradient operator: $\bigtriangledown f=\left [ \begin{matrix} f_x \\\ f_y \end{matrix} \right ] = \left [ \begin{matrix}
+		\frac{\partial f}{\partial x} \\\
+		\frac{\partial f}{\partial y}
+		\end{matrix}  \right ]$
+		* Magnitude: $M(x,y) = \sqrt{f^{2}_x + f^{2}_y}$
+		* Direction: $\alpha(x,y) = \arctan{\frac{f_y}{f_x}}$
+		
+		Edge direction is ortogonal to the direction $\alpha(x,y)$ of the gradient operator.
+		</section>
+		
+		<section data-markdown style="text-align: left;">
+		## Roberts Operator (1963)
+		
+		It was introduced in 1963 by L.G. Roberts in the context of 3D reconstruction problems and it was based on the computation of the first derivative of the image.
+		
+		$f_x = f(x,y) \ast \left [ \begin{matrix} -1 , 1 \end{matrix} \right ] $
+		
+		$f_y = f(x,y) \ast \left [ \begin{matrix} -1 \\\ 1 \end{matrix} \right ] $
+		
+		</section>
+		
+		<section>
+		<h2>Roberts Operator: Samples</h2>
+		<a href="./img03/Fig2_Roberts_Circle.png" class="stretch">	
+		<img src="./img03/Fig6_Circle_0_Image.png"></img></a>
+		<a href="./img03/Fig2_Roberts_Square.png" class="stretch">
+		<img src="./img03/Fig6_Square_0_Image.png"></img></a>
+		<a href="./img03/Fig2_Roberts_Romb.png"   class="stretch">
+		<img src="./img03/Fig6_Romb_0_Image.png"></img></a>
+		</section>	
+		
+		<section data-markdown>
+		## Roberts Cross Operator
+		In order to be able to compute diagonal edges, 2-D masks are needed. The Roberts operators are one of the earliest attempts to use 2-D masks for this purpose. These operators are based on computing the diagonal differences implemented by filtering an image with following masks:
+		
+		$f_x = f(x,y) \ast \left [ \begin{matrix} -1 & 0 \\\ 0 & 1 \end{matrix} \right ] $
+		
+		$f_y = f(x,y) \ast \left [ \begin{matrix} 0 & -1 \\\ 1 & 0 \end{matrix} \right ] $	
+		</section>
+		
+		<section>
+		<h2>Roberts Cross Operator: Samples</h2>
+		<a href="./img03/Fig3_RobertsCross_Circle.png" class="stretch">	
+		<img src="./img03/Fig6_Circle_0_Image.png"></img></a>
+		<a href="./img03/Fig3_RobertsCross_Square.png" class="stretch">
+		<img src="./img03/Fig6_Square_0_Image.png"></img></a>
+		<a href="./img03/Fig3_RobertsCross_Romb.png"   class="stretch">
+		<img src="./img03/Fig6_Romb_0_Image.png"></img></a>
+		</section>	
+		
+		<section data-markdown>
+		## Prewitt Operator (1970)
+		
+		Masks of size $2 × 2$, although conceptually simple, are not symmetrical with respect to the central points. Having symmetrical edges is a desirable property and can only be achieved with oddly sized masks, the smallest of them being the $3 × 3$.
+		
+		Judith Prewitt proposed new operator for edge detection on medcine images.
+		
+		$3 \cdot f_x = f(x,y) \ast \left [ \begin{matrix}
+		-1 & 0 & 1 \\\ 
+		-1 & 0 & 1 \\\
+		-1 & 0 & 1 \end{matrix} \right ] $
+		
+		$3 \cdot f_y = f(x,y) \ast \left [ \begin{matrix}
+		-1 & -1 & -1 \\\ 
+		0 &  0 &  0 \\\
+		1 &  1 &  1 \end{matrix} \right ] $
+		</section>
+		
+		<section>
+		<h2>Prewitt Operator: Samples</h2>
+		<a href="./img03/Fig4_Prewitt_Circle.png" class="stretch">	
+		<img src="./img03/Fig6_Circle_0_Image.png"></img></a>
+		<a href="./img03/Fig4_Prewitt_Square.png" class="stretch">
+		<img src="./img03/Fig6_Square_0_Image.png"></img></a>
+		<a href="./img03/Fig4_Prewitt_Romb.png"   class="stretch">
+		<img src="./img03/Fig6_Romb_0_Image.png"></img></a>
+		</section>	
+		
+		<section data-markdown>
+		## Sobel Operator (1968)
+		More appropriate name Sobel-Feldman Operator.
+		
+		This is a slight variation of the Prewitt operators which use more weight on the central coefficients of the masks to provide better image smoothing.
+
+		$4 \cdot f_x = f(x,y) \ast \left [ \begin{matrix}
+		-1 & 0 & 1 \\\ 
+		-2 & 0 & 2 \\\
+		-1 & 0 & 1 \end{matrix} \right ] $
+		
+		$4 \cdot f_y = f(x,y) \ast \left [ \begin{matrix}
+		-1 & -2 & -1 \\\ 
+		0 &  0 &  0 \\\
+		1 &  2 &  1 \end{matrix} \right ] $	
+		</section>
+		
+		<section data-markdown>
+		## Scharr Operator
+		A bit more accurate derivative approximation was proposed by Scharr.
+
+		$4 \cdot f_x = f(x,y) \ast \left [ \begin{matrix}
+		-3 &  0 & 3 \\\ 
+		-10 & 0 & 10 \\\
+		-3 &  0 & 3 \end{matrix} \right ] $
+		
+		$4 \cdot f_y = f(x,y) \ast \left [ \begin{matrix}
+		-3 & -10 & -3 \\\ 
+		0 &    0 &  0 \\\
+		3 &   10 &  3 \end{matrix} \right ] $	
+		
+		</section>
+
+		<section>
+		<h2>Sobel Operator: Samples</h2>
+		<a href="./img03/Fig5_Sobel_Circle.png" class="stretch">	
+		<img src="./img03/Fig6_Circle_0_Image.png"></img></a>
+		<a href="./img03/Fig5_Sobel_Square.png" class="stretch">
+		<img src="./img03/Fig6_Square_0_Image.png"></img></a>
+		<a href="./img03/Fig5_Sobel_Romb.png"   class="stretch">
+		<img src="./img03/Fig6_Romb_0_Image.png"></img></a>
+		</section>
+		
+		<section>
+		<h2>Operator Comparison</h2>
+		<a href="./img03/Fig6_Compare1Deriv_Circle2.png" class="stretch">	
+		<img src="./img03/Fig6_Circle_0_Image.png"></img></a>
+		<a href="./img03/Fig6_Compare1Deriv_Square2.png" class="stretch">
+		<img src="./img03/Fig6_Square_0_Image.png"></img></a>
+		<a href="./img03/Fig6_Compare1Deriv_Romb2.png" class="stretch">
+		<img src="./img03/Fig6_Romb_0_Image.png"></img></a>
+		
+		</br>
+		+ Real Images
+		</section>
+		
+		<section data-markdown>
+		##Diagonal Edges Operators
+			
+		### Prewitt:
+		$ \left [ \begin{matrix}
+		0 & 1 & 1 \\\ 
+		-1 & 0 & 1 \\\
+		-1 & -1 & 0 \end{matrix} \right ]; \left [ \begin{matrix}
+		-1 & -1 & 0 \\\ 
+		-1 & 0 & 1 \\\
+		 0 & 1 & 1 \end{matrix} \right ]$
+		
+		### Sobel:
+		$ \left [ \begin{matrix}
+		0 & 1 & 2 \\\ 
+		-1 & 0 & 1 \\\
+		-2 & -1 & 0 \end{matrix} \right ]; \left [ \begin{matrix}
+		-2 & -1 & 0 \\\ 
+		-1 & 0 & 1 \\\
+		 0 & 1 & 2 \end{matrix} \right ]$
+		
+		All operators invariant to $90^o$ rotation angles.
+		
+		</section>
+		
+		<section data-markdown>
+		##Thresholding
+		Use absolute or relative threshold to obtain edges from the gradient's magnitude. Output will be a binary image:
+		
+		$Edge(x,y) = \begin{cases}
+		& 1, M(x,y) \ge T \\\ 
+		& 0, M(x,y) < T
+		\end{cases}$
+		
+		Show Lesson3 Demo
+		
+		</section>		
+	</section>
+	
+	<section>
+		<section>
+		<h2>2nd Derivative Based Detectors</h2>
+		
+		Idea: reduce noise before detecting edges and then find zero crossing points of the second derivative of the image.
+
+		<a href="./img03/Fig1_Square2.png">
+		<img src="./img03/Fig1_Square2.png" class="stretch" width="80%" height="80%"></img></a>
+		</section>
+		
+		<section data-markdown>
+		## Marr-Hildreth Algorithm (1980)
+		
+		1. Convolution of the image with:
+		   * a Gaussian kernel and then a Laplacian operator (or)
+		   * a Laplacian of Gaussian (LoG) kernel.
+		2. Search of zero crossing points in the filtered image.		
+		</section>
+		
+		<section data-markdown  style="text-align: left;">
+		## LoG Kernel
+		
+		Gaussian kernel: $G(x,y) = e^{-\frac{x^2 + y^2}{2\sigma^2}}$;
+		
+		Laplassian kernel: $L(x,y) = \triangledown^2f(x,y) = \frac{\partial^2 f}{\partial x^2} + \frac{\partial^2 f}{\partial y^2}$;
+		
+		LoG kernel: $LoG(x,y) = \triangledown^2G(x,y) = \left [ \frac{x^2 + y^2 - 2\sigma^2}{\sigma^4} \right ] e^{-\frac{x^2 + y^2}{2\sigma^2}} $.
+		
+		$LoG = \left [ \begin{matrix}
+		1 &  1 & 1 \\\ 
+		1 & -8 & 1 \\\
+		1 &  1 & 1 \end{matrix} \right ] $ - invariant to $45^o$ rotation angle
+		
+		</section>
+		
+		<section data-markdown  style="text-align: left;">
+		## DoG Kernel
+		
+		Difference of Gaussian is an alternative to the LoG.
+
+		$ g_1(x,y) = G_1(x,y) \ast f(x,y) $
+		
+		$ g_2(x,y) = G_2(x,y) \ast f(x,y) $
+		
+		$ g_1(x,y) - g_2(x,y) = G_1(x,y) \ast f(x,y) - G_2(x,y) \ast f(x,y) = \\\ \left ( G_1(x,y) - G_2(x,y) \right ) \ast f(x,y) $		
+		</section>
+		
+		<section>
+		<h2> LoG and DoG 1D Plot </h2>	
+		<a href="./img03/Fig8_LoGDoG1D.png">
+		<img src="./img03/Fig8_LoGDoG1D.png" class="stretch" width="60%" height="60%"></img></a>		
+		</section>
+		
+		<section>
+		<h2> LoG and DoG 2D Plot </h2>
+		<a href="./img03/Fig8_gauss2d.png">
+		<img src="./img03/Fig8_gauss2d.png" class="stretch" width="30%" height="30%"></img></a>
+		<a href="./img03/Fig8_log2d.png">
+		<img src="./img03/Fig8_log2d.png" class="stretch" width="30%" height="30%"></img></a>	
+		<a href="./img03/Fig8_dog2d.png">
+		<img src="./img03/Fig8_dog2d.png" class="stretch" width="30%" height="30%"></img></a>	
+		</section>
+		
+		<section data-markdown>
+		## Zero Crossing
+		
+		Current pixel of the final image considered as edge if at least 1 check of its neighbors is true:
+		
+		$ \left [ \begin{matrix}
+		UL &  UM & UR \\\ 
+		ML & C & MR \\\
+		DL &  DM & DR \end{matrix} \right ] $
+		
+		, where U - up, M - middle, D - down, L - left and R - right.
+		
+		$sign(UL) \ne sign(DR) and \left | UL - DR \right | > Th$ or
+		
+		$sign(UM) \ne sign(DM) and \left | UM - DM \right | > Th$ or
+		
+		$sign(UR) \ne sign(DL) and \left | UR - DL \right | > Th$ or
+		
+		$sign(MR) \ne sign(ML) and \left | MR - ML \right | > Th$.		
+		</section>
+		
+		<section data-markdown>
+		##Haralick Algorithm
+		
+		The main idea of this algorithm is identical to that of the previous method: find zeros in the second derivative of the image. In this method, however, the input image is smoothly approximated through local bi-cubic polynomial fitting. 
+		
+		Then, when calculating the second derivative analytically, it is possible to find an equivalent expression to find the zeros of the second derivative of the polynomial as a function of its parameters.
+		</section>
+		
+		<section data-markdown>
+		##Haralick Algorithm
+		
+		1. For each pixel in the image, find the coefficients $ k1,...,k10 $ of bi-cubic polynomial.
+		2. Calculate gradient angle $\theta$ using polynomial coefficients.
+		3. Go to polar coordinates to obtain simplified polynom with coefficients $C_0,...,C_3$.
+		4. Calculate derivatives using $C_2, C_3$ coefficients.
+		5. If $\left | \frac{C_2}{3 C_3}\right |$ and $C_3 < 0$ then current pixel belongs to edge.
+		
+		</section>
+		
+		<section>
+		<h2>Comparison</h2>
+		<a href="./img03/SquareComparison.png">
+		<img src="./img03/SquareComparison.png" class="stretch" width="50%" height="50%"></img></a>
+		</section>
+		
+		<section>
+		<h2>Comparison (cont)</h2>
+		<a href="./img03/SquareComparison2.png">
+		<img src="./img03/SquareComparison2.png" class="stretch" width="50%" height="50%"></img></a>
+		</section>
+		
+	</section>
+	
+	<section>
+		<section>
+		<h2>Canny Edge Detector (1986)</h2>
+		<img class="stretch" src="./img03/CannyDiagram.png"></img>
+		</section>
+		
+		<section data-markdown style="text-align: left;">
+		###1. Noise Reduction
+		
+		Since edge detection is susceptible to noise in the image, first step is to remove the noise in the image with a 5x5 Gaussian filter.
+		
+		###2. Gradient's Magnitude and Angle
+		
+		Smoothened image is then filtered with a Sobel/Prewitt/Scharr kernel in both horizontal and vertical direction to get first derivative in horizontal direction $G_x$ and vertical direction $G_y$.
+		
+		$M(x,y) = \sqrt{G^2_x + G^2_y}$,
+		
+		$\alpha(x,y) = \left [ arctg\frac{G_y}{G_x} \right ] - $ rounded to one of 4 or 8 angles.	
+		
+		</section>
+		
+		<section style="text-align: left;">
+		<h2>Step 1-2 Example</h2>
+		<a href="./img03/Figure9_Canny1-2_Circle.png">
+		<img src="./img03/Figure9_Canny1-2_Circle.png" class="stretch" width="70%" height="70%"></img></a>
+		<a href="./img03/Figure9_Canny1-2_Cameraman.png">
+		<img src="./img03/Figure9_Canny1-2_Cameraman.png" class="stretch" width="70%" height="70%"></img></a>
+		</section>
+		
+		<section data-markdown>
+		###3. Non-maximum Suppression
+		
+		It is an edge thinning technique, because after applying gradient calculation, the edge extracted from the gradient value is still quite blurred.
+		
+		![](./img03/nms2.png)
+		</section>
+		
+		<section>
+		<h3>4. Hysteresis Thresholding</h3>
+		Using double threshold (TH and TL) to filter strong and weak edges:
+		
+		<a href="./img03/hysteresis.png">
+		<img src="./img03/hysteresis.png" class="stretch" width="70%" height="70%"></img></a>	
+		</section>
+		
+		<section data-markdown>
+		## Demo
+
+		Launch Lesson3 application
+		
+		</section>
+		
+	</section>
+	
+	<!--
+	<section>
+		<section data-markdown>
+		## gPb Detector
+		</section>
+	</section>
+	-->
+	
+	<section>
+		<section data-markdown>
+		## Post-processing
+		</section>
+	</section>
+	
+	<section>
+		<section data-markdown>
+		### Dataset and Benchmark
+		
+		* [The Berkeley Segmentation Dataset and Benchmark](https://www.eecs.berkeley.edu/Research/Projects/CS/vision/bsds/)
+		* [Contour Detection and Image Segmentation Resources](http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/resources.html)
+		
+		</section>		
+	</section>
+
+	<section>		
+		<section data-markdown>
+		### Resources
+		* [Rafael С. Gonzalez, Richard E. Woods (2008): "Digital Image Processing (3rd Edition)"](http://www.imageprocessingplace.com/DIP-3E/dip3e_main_page.htm)
+		* [Haldo Spontón, and Juan Cardelino, A Review of Classic Edge Detectors, Image Processing On Line, 5 (2015), pp. 90–123.](http://www.ipol.im/pub/art/2015/35/)
+		* L.G. Roberts, Machine perception of three-dimensional solids, Phd. Thesis. Massachusetts Institute of Technology, (1963)
+		* J.M.S. Prewitt "Object Enhancement and Extraction" in "Picture processing and Psychopictorics", Academic Press,1970
+		* Sobel, I., Feldman, G., "A 3x3 Isotropic Gradient Operator for Image Processing", presented at the Stanford Artificial Intelligence Project (SAIL) in 1968
+		* [History and Definition of the so-called "Sobel Operator", more appropriately named the Sobel-Feldman Operator by Irwin Sobel February 2, 2014](https://www.researchgate.net/publication/239398674_An_Isotropic_3_3_Image_Gradient_Operator)
+		</section>
+		
+		<section data-markdown>
+		### Resources (cont.)
+		* [D. Marr; E. C. Hildreth., Theory of edge detection, Proceedings of the Royal Society, London B, 207 (1980), pp. 187–217](http://www.hms.harvard.edu/bss/neuro/bornlab/qmbc/beta/day4/marr-hildreth-edge-prsl1980.pdf)
+		* [R. M. Haralick, Digital step edges from zero crossing of the second directional derivatives, IEEE Transactions on Pattern Analysis and Machine Intelligence, 6 (1984), pp. 58–68.](http://dx.doi.org/10.1109/TPAMI.1984.4767475)
+		* [J. Canny, A Computational Approach to Edge Detection, IEEE Transactions on Pattern Analysis and Machine Intelligence, vol. pami-8, no. 6, November 1986](https://perso.limsi.fr/vezien/PAPIERS_ACS/canny1986.pdf)
+		</section>
+	</section>
+	
+    <section data-markdown>
+        ## Thank You!
+    </section>
+</div>
