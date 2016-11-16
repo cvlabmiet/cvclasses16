@@ -66,3 +66,7 @@ ipch/
 *.vsp
 *.vspx
 *.sap
+
+*.user
+
+build*

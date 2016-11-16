@@ -1,18 +1,8 @@
-///@File: ISegmentMotion.h
-///@Brief: Contains interface for SegmentMotion classes
-///@Author: Vitaliy Baldeev
-///@Date: 10 October 2015
-
 #pragma once
 
 #include <string>
 
-#include "opencv2\core\mat.hpp"
-
-namespace cv 
-{
-    class VideoCapture;
-}
+#include "opencv2/core/mat.hpp"
 
 ///@class ISegmentMotion
 /// Interface for SegmentMotion classes
@@ -20,7 +10,7 @@ class SegmentMotionBase
 {
 public:
     ///@brief Launch demonstration
-    void Run();
+    void Run(const std::string &video_file);
 
         ///@brief Factory method
     static SegmentMotionBase* CreateAlgorithm(std::string& algorithmName);
@@ -44,7 +34,7 @@ protected:
 
     ///@brief Apply the algorthm of background subtraction
     ///@return the result binary image
-    virtual cv::Mat process(cv::VideoCapture& capture) 
+    virtual cv::Mat process(cv::Mat&)
     { 
         return cv::Mat();
     }
