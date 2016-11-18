@@ -12,11 +12,8 @@
 #include "opencv2\highgui.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
-cv::Mat SegmentMotionBU::process(cv::VideoCapture& capture)
+cv::Mat SegmentMotionBU::process(cv::Mat& currentFrame)
 {
-    cv::Mat currentFrame;
-    capture >> currentFrame;
-
     if (!m_prevBackgroundUpdated)
     {
         cv::cvtColor(currentFrame, m_prevBackground, CV_RGB2GRAY);
