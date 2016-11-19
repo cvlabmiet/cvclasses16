@@ -103,9 +103,8 @@
     <ClCompile Include="gmm.cpp" />
     <ClCompile Include="kmeans.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="otsuthreshold.cpp" />
-	<ClCompile Include="splitAndMerge.cpp" />
     <ClCompile Include="watershed.cpp">
+    <ClCompile Include="graphcut.cpp">
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
