@@ -9,8 +9,9 @@
 #include <string.h>
 #include <map>
 #include <functional>
+#include <vector>
 
-#include "opencv2/highgui.hpp"
+#include <opencv2/highgui.hpp>
 
 /// @brief Helper storage of all demo applications
 class DemoRegistry {
@@ -40,15 +41,15 @@ private:
 };
 
 // Declaration of Demo functions implemented in separate unit
-int iterOptThreshold(int, char**) { return 0; /*TODO: implement in separate file*/ }
-int otsu(int, char**);
-int gmm(int, char**);
-int regionGrowing(int, char**) { return 0; /*TODO: implement in separate file*/ }
-int splitAndMerge(int, char**) { return 0; /*TODO: implement in separate file*/ }
-int watershed(int, char**);		/*TODO: modify to interactive demo*/
-int kmeans(int, char**);		/*TODO: modify to interactive demo for images*/
-int gabortexture(int, char**) { return 0; /*TODO: implement in separate file*/ }
-int graphcut(int, char**) { return 0; /*TODO: implement in separate file*/ }
+int iterOptThreshold(int, char**) { return 0; /*TODO: implement in separate file*/ };
+int otsu(int, char**) { return 0; /*TODO: implement in separate file*/ };
+int gmm(int, char**) { return 0; /*TODO: implement in separate file*/ };
+int regionGrowing(int, char**) { return 0; /*TODO: implement in separate file*/ };
+int splitAndMerge(int, char**) { return 0; /*TODO: implement in separate file*/ };
+int watershed(int, char**){ return 0; /*TODO: implement in separate file*/ };
+int kmeans(int, char**) { return 0; /*TODO: implement in separate file*/ };		/*TODO: modify to interactive demo for images*/
+int gabortexture(int argc, char** argv);
+int graphcut(int, char**) { return 0; /*TODO: implement in separate file*/ };
 
 ///@brief Entry point
 int _tmain(int argc, char** argv)
