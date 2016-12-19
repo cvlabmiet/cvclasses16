@@ -11,7 +11,7 @@ class IObjectTracking
 {
 public:
     ///@brief object tracking function
-    virtual void Run(cv::VideoCapture &capture) = 0;
+    virtual void Run(cv::VideoCapture& capture, cv::VideoWriter& videoOut, const std::string& name_background) = 0;
 
     ///@brief factory method
     static IObjectTracking* CreateAlgorythm(const std::string& algorithmName);

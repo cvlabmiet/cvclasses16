@@ -12,12 +12,14 @@
 #include "opencv2\imgproc\imgproc.hpp"
 #include "opencv2\video\video.hpp"
 #include "opencv2\highgui\highgui.hpp"
+#include "opencv2\core\core.hpp"
 
 #include <iostream>
 #include <memory>
 #include <ctype.h>
 #include <algorithm>
 #include <fstream>
+#include <list>
 
 
 

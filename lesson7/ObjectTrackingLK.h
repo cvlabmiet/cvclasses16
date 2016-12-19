@@ -12,7 +12,7 @@ class ObjectTrackingLK : public IObjectTracking
 {
 public:
     ///@see IObjectTracking::Run
-    virtual void Run(cv::VideoCapture &capture);
+    virtual void Run(cv::VideoCapture& capture, cv::VideoWriter& videoOut, const std::string& name_background);
 
     ///@brife reply name
     virtual std::string GetName() const
