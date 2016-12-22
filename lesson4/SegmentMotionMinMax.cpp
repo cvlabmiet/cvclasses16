@@ -4,10 +4,11 @@
 ///@Date: 17 October 2015
 
 #include <iterator>
+#include <cmath>
 
-#include "opencv2\videoio.hpp"
-#include "opencv2\imgproc.hpp"
-#include "opencv2\highgui.hpp"
+#include <opencv2/videoio.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 
 #include "SegmentMotionMinMax.h"
 
@@ -72,7 +73,7 @@ cv::Mat SegmentMotionMinMax::process(cv::VideoCapture& capture)
                 // Calculate D
                 if (pos != m_frameBuffer.begin())
                 {
-                    float absDiff = abs(val - previous);
+                    float absDiff = std::abs(val - previous);
                     previous = val;
 
                     if (absDiff > m_Dmat(i, j))

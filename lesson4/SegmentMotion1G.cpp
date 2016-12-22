@@ -7,10 +7,11 @@
 
 #include <iostream>
 #include <iterator>
+#include <cmath>
 
-#include "opencv2\video\video.hpp"
-#include "opencv2\imgproc\imgproc.hpp"
-#include "opencv2\highgui\highgui.hpp"
+#include <opencv2/video/video.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 cv::Mat SegmentMotion1G::process(cv::VideoCapture& capture)
@@ -87,7 +88,7 @@ cv::Mat SegmentMotion1G::process(cv::VideoCapture& capture)
     {
         for (int j = 0; j < frame.cols; j++)
         {
-            if ((abs(m_mMat(i, j) - static_cast<float>(frame.at<uchar>(i, j))) / m_sigmaMat(i, j)) >
+            if ((std::abs(m_mMat(i, j) - static_cast<float>(frame.at<uchar>(i, j))) / m_sigmaMat(i, j)) >
                 static_cast<float>(m_params.T))
             {
                 result.at<uchar>(i, j) = static_cast<uchar>(0);

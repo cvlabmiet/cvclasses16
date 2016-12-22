@@ -8,8 +8,8 @@
 
 #include <iostream>
 
-#include <opencv2\videoio\videoio.hpp>
-#include "opencv2\highgui.hpp"
+#include <opencv2/videoio/videoio.hpp>
+#include <opencv2/highgui.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 cv::Mat SegmentMotionGMM::process(cv::VideoCapture& capture)

@@ -9,8 +9,8 @@
 #include <list>
 #include "SegmentMotionBase.h"
 
-#include "opencv2\core\mat.hpp"
-#include "opencv2\video\background_segm.hpp"
+#include <opencv2/core/mat.hpp>
+#include <opencv2/video/background_segm.hpp>
 
 ///@class SegmentMotion1G
 /// Demonstrates the One gaussian algorithm of background subtraction
