@@ -12,21 +12,18 @@
 #include "SegmentMotionMinMax.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-cv::Mat SegmentMotionMinMax::process(cv::VideoCapture& capture)
+cv::Mat SegmentMotionMinMax::process(cv::Mat& frame)
 {
     if (m_params.historySize == 0)
     {
         m_params.historySize = 1;
     }
 
-    cv::Mat frame;
-
     if (m_frameBuffer.size() < m_params.historySize)
     {
+		cv::cvtColor(frame, frame, CV_BGR2GRAY);
         while (m_frameBuffer.size() < m_params.historySize)
         {
-            capture >> frame;
-            cv::cvtColor(frame, frame, CV_BGR2GRAY);
             m_frameBuffer.push_back(frame);
         }
     }
@@ -38,8 +35,7 @@ cv::Mat SegmentMotionMinMax::process(cv::VideoCapture& capture)
         }
     }
 
-    capture >> frame;
-    cv::cvtColor(frame, frame, CV_BGR2GRAY);
+    //cv::cvtColor(frame, frame, CV_BGR2GRAY);
     m_frameBuffer.pop_front();
     m_frameBuffer.push_back(frame);
 

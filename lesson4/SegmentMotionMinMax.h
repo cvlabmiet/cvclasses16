@@ -26,7 +26,7 @@ public:
 
 protected:
     ///@see SegmentMotionBase::process
-    virtual cv::Mat process(cv::VideoCapture& capture) override;
+    virtual cv::Mat process(cv::Mat& frame) override;
 
     ///@see SegmentMotionBase::createGUI
     virtual void createGUI() override;

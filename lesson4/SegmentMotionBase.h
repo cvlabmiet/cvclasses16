@@ -20,7 +20,7 @@ class SegmentMotionBase
 {
 public:
     ///@brief Launch demonstration
-    void Run();
+    void Run(const std::string& videoName, const std::string& videoDetectedObject);
 
         ///@brief Factory method
     static SegmentMotionBase* CreateAlgorithm(std::string& algorithmName);
@@ -44,7 +44,7 @@ protected:
 
     ///@brief Apply the algorthm of background subtraction
     ///@return the result binary image
-    virtual cv::Mat process(cv::VideoCapture& capture) 
+    virtual cv::Mat process(cv::Mat& frame)
     { 
         return cv::Mat();
     }

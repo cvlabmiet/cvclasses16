@@ -17,28 +17,55 @@
 #include "SegmentMotion1G.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-void SegmentMotionBase::Run()
+void SegmentMotionBase::Run(const std::string& videoName, const std::string& videoDetectedObject)
 {
-    cv::VideoCapture capture(0);
+    cv::VideoCapture capture(videoName);
+	cv::VideoWriter  videoOut;
+
+	int codec = CV_FOURCC('M', 'J', 'P', 'G');
+	double fps = capture.get(CV_CAP_PROP_FPS);
+
+	videoOut.open(videoDetectedObject, codec, fps, {(int)capture.get(CV_CAP_PROP_FRAME_HEIGHT), (int)capture.get(CV_CAP_PROP_FRAME_WIDTH)});
+
+	if (!videoOut.isOpened())
+	{
+		std::cerr << "Could not open the output video file for write\n";
+		exit(-1);
+	}
 
     if (!capture.isOpened())
     {
-        std::cerr << "Can not open the camera !" << std::endl;
+        std::cerr << "Can not open the video!" << std::endl;
         exit(-1);
     }
 
     createGUI();
 
+	cv::Mat frame;
+	cv::Mat image_write(frame.rows, frame.cols, CV_8UC3);
     while (true)
     {
-        m_foreground = process(capture);
-        cv::imshow(GetName(), m_foreground);
+		capture >> frame;
+		if (frame.empty())
+		{
+			break;
+		}
 
+		m_foreground = process(frame);
+		cv::imshow(GetName(), m_foreground);
+
+		cv::cvtColor(m_foreground, image_write, CV_GRAY2BGR);
+
+		videoOut.write(image_write);
+	
         if (cv::waitKey(1) >= 0)
         {
             break;
         }
     }
+
+	videoOut.release();
+	capture.release();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
