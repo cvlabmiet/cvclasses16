@@ -28,7 +28,7 @@ public:
 
 protected:
     ///@see SegmentMotionBase::process
-    virtual cv::Mat process(cv::VideoCapture& capture) override;
+    virtual cv::Mat process(cv::Mat& currentFrame) override;
 
     ///@see SegmentMotionBase::createGUI
     virtual void createGUI() override;
@@ -42,13 +42,6 @@ protected:
 
     Params m_params;
 
-    ///@brief frame buffer
-    std::list<cv::Mat> m_frameBuffer;
-    ///@brief matrix of min value of each pixel for the history
-    cv::Mat_<float> m_mMat;
-    ///@brief matrix of max value of each pixel for the history
-    cv::Mat_<float> m_sigmaMat;
-
     ///@brief Pointer to OpenCV algorithm of background subtraction
-    //cv::Ptr<cv::BackgroundSubtractorMOG2> m_algorithmPtr;
+    cv::Ptr<cv::BackgroundSubtractorMOG2> m_algorithmPtr;
 };

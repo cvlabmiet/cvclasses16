@@ -12,15 +12,12 @@
 #include "opencv2\highgui.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
-cv::Mat SegmentMotionGMM::process(cv::VideoCapture& capture)
+cv::Mat SegmentMotionGMM::process(cv::Mat& currentFrame)
 {
     if(!m_algorithmPtr)
     {
         m_algorithmPtr = cv::createBackgroundSubtractorMOG2();
     }
-
-    cv::Mat currentFrame;
-    capture >> currentFrame;
 
     cv::Mat result;
     m_algorithmPtr->apply(currentFrame, result);
