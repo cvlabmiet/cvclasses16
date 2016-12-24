@@ -1,16 +1,11 @@
-///@File: SegmentMotion1G.h
-///@Brief: Contains implementation of segmentation based on One Gaussian
-///@Author: Kuksova Svetlana
-///@Date: 26 October 2015
-
 #pragma once
 
 #include <iostream>
 #include <list>
 #include "SegmentMotionBase.h"
 
-#include "opencv2\core\mat.hpp"
-#include "opencv2\video\background_segm.hpp"
+#include "opencv2/core/mat.hpp"
+#include "opencv2/video/background_segm.hpp"
 
 ///@class SegmentMotion1G
 /// Demonstrates the One gaussian algorithm of background subtraction
@@ -28,7 +23,7 @@ public:
 
 protected:
     ///@see SegmentMotionBase::process
-    virtual cv::Mat process(cv::VideoCapture& capture) override;
+    virtual cv::Mat process(cv::Mat& frame) override;
 
     ///@see SegmentMotionBase::createGUI
     virtual void createGUI() override;
