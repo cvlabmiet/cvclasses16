@@ -13,10 +13,6 @@ IObjectTracking* IObjectTracking::CreateAlgorythm(const std::string & name)
 {
     if (name == "LK")
         return new ObjectTrackingLK();
-    else if (name == "TK")
-        return new ObjectTrackingTK();
-    else if (name == "STK")
-        return new ObjectTrackingSTK();
-    else
+	else
         return nullptr;
 }
