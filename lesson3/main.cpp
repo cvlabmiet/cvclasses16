@@ -3,8 +3,6 @@
 ///@Author: Roman Golovanov
 ///@Date: 08 September 2015
 
-#include "stdafx.h"
-
 #include <iostream>
 #include <stdio.h>
 #include <string.h>
@@ -16,9 +14,13 @@
 
 const std::string c_origWindowName = "Original Picture";
 const std::string c_edgeWindowName = "Edge Picture";
+const std::string recPrecFileName  = "recprec.txt";
 
 int g_threshold = 50;
 int g_operatorId = 0;
+cv::Mat edgePicture;
+cv::Mat handEdgeImage;
+std::ofstream recPrecFile;
 std::pair<int, int> g_lastThOp = { -1, -1 };
 
 ///@brief Edge operator specification
@@ -31,6 +33,7 @@ struct EdgeOperator
 
 const std::string LoGName = "LoG";
 const std::string CannyName = "Canny";
+const std::string DoGName = "DoG";
 
 ///@brief array of edge operators
 std::vector<EdgeOperator> g_operatorSpec = {
@@ -46,8 +49,66 @@ std::vector<EdgeOperator> g_operatorSpec = {
                                     { -3, -10, -3,   0, 0,  0,  3, 10, 3} },
    EdgeOperator{ LoGName,           { 1,  1, 1 , 1, -8, 1, 1, 1, 1 },
                                     { 0,  0, 0,  0,  0, 0, 0, 0, 0 } },
+   EdgeOperator{ DoGName,           { 0.01130886, 0.07798381, 0.01130886,
+                                      0.07798381, -0.3571707, 0.07798381,
+                                      0.01130886, 0.07798381, 0.01130886},
+                                    { 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
    EdgeOperator{ CannyName },
 };
+
+static void calcRecPrec(cv::Mat img, double* rec, double* prec)
+{
+//    cv::dilate(img, img, cv::Mat());
+    size_t false_negs = 0;
+    size_t true_negs = 0;
+    size_t false_pos = 0;
+    size_t true_pos = 0;
+    for (int i = 0; i < img.rows; i++) {
+        for (int j = 0; j < img.cols; j++) {
+            if (img.at<float>(i, j) > 0) {
+                if (handEdgeImage.at<u_char>(i, j) > 0) {
+                    true_pos++;
+                }
+                else {
+                    false_pos++;
+                }
+            }
+            else {
+                if (handEdgeImage.at<u_char>(i, j) > 0) {
+                    false_negs++;
+                }
+                else {
+                    true_negs++;
+                }
+            }
+        }
+    }
+    *rec = true_pos / ((double) true_pos + false_negs);
+    *prec = true_pos / ((double) true_pos + false_pos);
+}
+
+static void onMouse(int event, int x, int y, int flags, void*)
+{
+    if (event != CV_EVENT_MBUTTONUP)
+    {
+        return;
+    }
+
+    auto& oper = g_operatorSpec[g_operatorId];
+    const int bufSize = 100;
+    char chint[bufSize];
+    sprintf(chint, "%s_%d.bmp", oper.Name.data(), g_threshold);
+    cv::imwrite(chint, edgePicture);
+
+
+    double rec, prec;
+    calcRecPrec(edgePicture, &rec, &prec);
+    if (isnan(prec)) {
+        prec = 1;
+    }
+    recPrecFile << chint << "  " << rec << "  " << prec << std::endl;
+    std::cout << "Saved an image: " << chint << std::endl;
+}
 
 /////////////////////////////////////////////////////////////////////
 void apply1stDerivativeAlgo(cv::Mat& i_img, EdgeOperator& i_oper, cv::Mat& o_edges)
@@ -127,10 +188,12 @@ void processFrame(cv::Mat& i_image)
    {
       apply1stDerivativeAlgo(gray, oper, edges);
    }
+   edges.copyTo(edgePicture);
+   edgePicture = edgePicture * 255;
 
    const int bufSize = 100;
    char chint[bufSize];
-   sprintf_s(chint, bufSize, "%s Operator, %d", oper.Name.data(), g_threshold);
+   sprintf(chint, "%s Operator, %d", oper.Name.data(), g_threshold);
    std::string shint{ chint };
    const auto txtSize = cv::getTextSize(shint, CV_FONT_HERSHEY_PLAIN, 1.0, 1, nullptr);
    cv::putText(edges, shint, { 10, 10 + txtSize.height }, CV_FONT_HERSHEY_PLAIN, 1.0, 1.0);
@@ -181,17 +244,46 @@ void trackBarCallBack(int, void*)
    printf("Operator: %s; Threshold: %d\n", g_operatorSpec[g_operatorId].Name.data(), g_threshold);
 }
 
+std::string type2str(int type) {
+  std::string r;
+
+  u_char depth = type & CV_MAT_DEPTH_MASK;
+  u_char chans = 1 + (type >> CV_CN_SHIFT);
+
+  switch ( depth ) {
+    case CV_8U:  r = "8U"; break;
+    case CV_8S:  r = "8S"; break;
+    case CV_16U: r = "16U"; break;
+    case CV_16S: r = "16S"; break;
+    case CV_32S: r = "32S"; break;
+    case CV_32F: r = "32F"; break;
+    case CV_64F: r = "64F"; break;
+    default:     r = "User"; break;
+  }
+
+  r += "C";
+  r += (chans+'0');
+
+  return r;
+}
+
 ///@brief Entry point
-int _tmain(int argc, char** argv)
+int main(int argc, char** argv)
 {
    cv::CommandLineParser parser(argc, argv, "{ help h |  | }"
-                                            "{ @input |  | }");
+                                            "{ @input |  | }"
+                                            "{ @handEdge |  | }");
    if (parser.has("help"))
    {
       parser.printMessage();
       return 0;
    }
    const auto& fileName = parser.get<std::string>("@input");
+   const auto& handFileName = parser.get<std::string>("@handEdge");
+   handEdgeImage = cv::imread(handFileName, CV_LOAD_IMAGE_GRAYSCALE);
+   if (handEdgeImage.empty()) {
+       std::cout << "Failed to open hand-drawn image" << std::endl;
+   }
 
    /// Create window with original image
    cv::namedWindow(c_origWindowName, CV_WINDOW_NORMAL);
@@ -203,11 +295,18 @@ int _tmain(int argc, char** argv)
 
    cv::createTrackbar("Threshold", c_edgeWindowName, &g_threshold, 100, trackBarCallBack);
    cv::createTrackbar("Operator",  c_edgeWindowName, &g_operatorId, g_operatorSpec.size() - 1, trackBarCallBack);
+   cv::setMouseCallback(c_edgeWindowName, onMouse, 0);
+
+   recPrecFile.open(recPrecFileName);
+
+   std::cout << type2str(handEdgeImage.type()) << std::endl;
 
    if (!processImage(fileName))
    {
       processVideo();
    }
+
+   recPrecFile.close();
 
 	return 0;
 }
