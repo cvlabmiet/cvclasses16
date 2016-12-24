@@ -6,7 +6,7 @@
 #include <iostream>
 
 void demoSIFT(int, char*[]) { std::cout << "SIFT is under construction"; }; // TODO implement it in separate file
-void demoSURF(int, char*[]) { std::cout << "SURF is under construction"; }; // TODO implement it in separate file
+void demoSURF(int, char*[]);
 void demoFAST(int, char*[]) { std::cout << "FAST is under construction"; }; // TODO implement it in separate file
 
 int main(int argc, char* argv[])
