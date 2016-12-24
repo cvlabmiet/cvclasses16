@@ -8,6 +8,21 @@
 
 int main(int argc, char** argv)
 {
+	std::string filename = "lab7_source.avi";
+
+	cv::VideoCapture capture(filename);
+	if (!capture.isOpened())
+	{
+		std::cerr << "error opening file " << filename << std::endl;
+		return -1;
+	}
+
+	std::unique_ptr<IObjectTracking> ptr(IObjectTracking::CreateAlgorythm("LK"));
+	ptr->Run(capture);
+
+	return 0;
+
+	/*
     std::cout << "Choose algorythm or press q to quit:\n" <<
         "LK - Lucas-Kanade algorythm\n" <<
         "TK - Tomasi-Kanade algorythm\n" <<
@@ -42,4 +57,5 @@ int main(int argc, char** argv)
     }
 
     return 0;
+	*/
 }
