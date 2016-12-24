@@ -47,7 +47,7 @@ int regionGrowing(int, char**) { return 0; /*TODO: implement in separate file*/ 
 int splitAndMerge(int, char**);
 int watershed(int, char**);		/*TODO: modify to interactive demo*/
 int kmeans(int, char**);		/*TODO: modify to interactive demo for images*/
-int gabortexture(int, char**) { return 0; /*TODO: implement in separate file*/ }
+int gabortexture(int, char**);
 int graphcut(int, char**) { return 0; /*TODO: implement in separate file*/ }
 
 ///@brief Entry point
