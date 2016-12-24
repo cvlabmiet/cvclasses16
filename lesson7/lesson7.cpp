@@ -6,40 +6,21 @@
 #include "stdafx.h"
 #include "IObjectTracking.h"
 
+#pragma comment(lib, "opencv_world300d.lib")
+
 int main(int argc, char** argv)
 {
-    std::cout << "Choose algorythm or press q to quit:\n" <<
-        "LK - Lucas-Kanade algorythm\n" <<
-        "TK - Tomasi-Kanade algorythm\n" <<
-        "STK - Shi-Tomasi-Kanade algorythm\n";
+	std::string filename = "movie.avi";
 
-    std::string name;
-    std::cin >> name;
+	cv::VideoCapture capture(filename);
+	if (!capture.isOpened())
+	{
+		std::cerr << "error opening file " << filename << std::endl;
+		return -1;
+	}
 
-    if (name == "q")
-        return 0;
+	std::unique_ptr<IObjectTracking> ptr(IObjectTracking::CreateAlgorythm("LK"));
+	ptr->Run(capture);
 
-    std::unique_ptr<IObjectTracking> ptr(IObjectTracking::CreateAlgorythm(name));
-    if (ptr)
-    {
-        cv::VideoCapture capture;
-        if (argc == 1)
-            capture = cv::VideoCapture(0);
-        else
-            capture = cv::VideoCapture(argv[1]);
-
-        if (!capture.isOpened())
-        {
-            std::cout << "Capture opening failed.\n";
-            exit(1);
-        }
-
-        ptr->Run(capture);
-    }
-    else
-    {
-        std::cerr << "Invalid name of algorythm." << std::endl;
-    }
-
-    return 0;
+	return 0;
 }
