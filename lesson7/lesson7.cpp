@@ -3,8 +3,13 @@
 ///@Author: Sidorov Stepan
 ///@Date: 07.12.2015
 
-#include "stdafx.h"
 #include "IObjectTracking.h"
+#include "fakevideocapture.h"
+
+#include <iostream>
+#include <memory>
+
+#include <opencv2/highgui.hpp>
 
 int main(int argc, char** argv)
 {
@@ -22,19 +27,24 @@ int main(int argc, char** argv)
     std::unique_ptr<IObjectTracking> ptr(IObjectTracking::CreateAlgorythm(name));
     if (ptr)
     {
-        cv::VideoCapture capture;
+        cv::VideoCapture* capture;
         if (argc == 1)
-            capture = cv::VideoCapture(0);
-        else
-            capture = cv::VideoCapture(argv[1]);
+            capture = new cv::VideoCapture(0);
+        else {
+            cv::Mat foreground = cv::imread(argv[1]);
+            if (foreground.empty()) {
+                std::cout << "Can not open file " << argv[1] << std::endl;
+            }
+            capture = new FakeVideoCapture(Shape::romb, foreground, 15);
+        }
 
-        if (!capture.isOpened())
+        if (!capture->isOpened())
         {
             std::cout << "Capture opening failed.\n";
             exit(1);
         }
 
-        ptr->Run(capture);
+        ptr->Run(*capture);
     }
     else
     {

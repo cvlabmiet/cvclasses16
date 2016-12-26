@@ -3,8 +3,15 @@
 ///@Author: Sidorov Stepan
 ///@Date: 07.12.2015
 
-#include "stdafx.h"
 #include "ObjectTrackingLK.h"
+
+#include <iostream>
+#include <algorithm>
+
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/video/tracking.hpp>
+#include <opencv2/xfeatures2d.hpp>
 
 cv::Point2f point;
 bool addRemovePt = false;
@@ -39,12 +46,19 @@ void ObjectTrackingLK::Run(cv::VideoCapture & capture)
 
     int win_Size = 3;
     cv::createTrackbar("WinSize", GetName(), &win_Size, 10);
+    cv::Ptr<cv::xfeatures2d::SURF> detector = cv::xfeatures2d::SURF::create();
+    std::vector<bool> movedPts;
+    std::vector<bool> prevMovedPts;
 
+    bool firstIter = true;
+    bool stopDetected = false;
     for (;;)
     {
         capture >> frame;
-        if (frame.empty())
+        if (frame.empty()) {
+            std::cout << "Frame is empty" << std::endl;
             break;
+        }
 
         frame.copyTo(image);
         cvtColor(image, gray, cv::COLOR_BGR2GRAY);
@@ -55,8 +69,22 @@ void ObjectTrackingLK::Run(cv::VideoCapture & capture)
         if (needToInit)
         {
             // automatic initialization
-            goodFeaturesToTrack(gray, points[1], MAX_COUNT, 0.01, 10, cv::Mat(), win_Size, 0, 0.04);
-            cornerSubPix(gray, points[1], subPixWinSize, cv::Size(-1, -1), termcrit);
+//            goodFeaturesToTrack(gray, points[1], MAX_COUNT, 0.01, 10, cv::Mat(), win_Size, 0, 0.04);
+//            cornerSubPix(gray, points[1], subPixWinSize, cv::Size(-1, -1), termcrit);
+            std::vector<cv::KeyPoint> kPoints;
+            detector->detect(gray, kPoints);
+
+            auto kPtComp = [] (const cv::KeyPoint& pt1, const cv::KeyPoint& pt2) -> bool {
+                return pt1.response < pt2.response;
+            };
+            std::sort(kPoints.begin(), kPoints.end(), kPtComp);
+
+            points[1].clear();
+            const int ptNum = std::min(MAX_COUNT, (int)kPoints.size());
+            for (int i = 0; i < ptNum; i++) {
+                points[1].push_back(kPoints[i].pt);
+            }
+
             addRemovePt = false;
         }
         else if (!points[0].empty())
@@ -65,8 +93,19 @@ void ObjectTrackingLK::Run(cv::VideoCapture & capture)
             std::vector<float> err;
             if (prevGray.empty())
                 gray.copyTo(prevGray);
-            calcOpticalFlowPyrLK(prevGray, gray, points[0], points[1], status, err, winSize,
+            cv::calcOpticalFlowPyrLK(prevGray, gray, points[0], points[1], status, err, winSize,
                 5, termcrit, 0, 0.001);
+            movedPts.clear();
+            for (int i = 0; i < err.size(); i++) {
+                if (status[i]) {
+                    if (err[i] > 0.5) {
+                        // point has moved
+                        movedPts.push_back(true);
+                        continue;
+                    }
+                }
+                movedPts.push_back(false);
+            }
             size_t i, k;
             for (i = k = 0; i < points[1].size(); i++)
             {
@@ -83,16 +122,55 @@ void ObjectTrackingLK::Run(cv::VideoCapture & capture)
                     continue;
 
                 points[1][k++] = points[1][i];
-                circle(image, points[1][i], 3, cv::Scalar(0, 255, 0), -1, 8);
+                if (movedPts[i]) {
+                    circle(image, points[1][i], 10, cv::Scalar(0, 0, 255), -1, 8);
+                }
+                else {
+                    circle(image, points[1][i], 3, cv::Scalar(0, 255, 0), -1, 8);
+                }
             }
             points[1].resize(k);
+        }
+
+        if (firstIter) {
+            prevMovedPts = std::vector<bool>(movedPts.size(), false);
+            firstIter = false;
+        }
+        // detect stop of motion
+        std::vector<bool> changedMovement;
+        for (int i = 0; i < movedPts.size(); i++) {
+            if ((prevMovedPts[i] == true) && (movedPts[i] == false)) {
+                changedMovement.push_back(true);
+            }
+            else {
+                changedMovement.push_back(false);
+            }
+        }
+        int numStopped = std::count(changedMovement.begin(), changedMovement.end(), true);
+        int numMoved = std::count(prevMovedPts.begin(), prevMovedPts.end(), true);
+        std::cout << "Num moved: " << numMoved << ", num stopped: " << numStopped << std::endl;
+        if ((numStopped >= 0.9 * numMoved) && (numMoved > 10)) {
+            // stop detected
+            std::cout << "Stop detected" << std::endl;
+            std::vector<cv::Point2f> pts;
+            for (int i = 0; i < points[1].size(); i++) {
+                if (changedMovement[i]) {
+                    pts.push_back(points[1][i]);
+                }
+            }
+            std::cout << pts.size() << std::endl;
+            cv::Rect bndRect = cv::boundingRect(pts);
+            std::cout << bndRect.x << " " << bndRect.y << std::endl;
+            std::cout << bndRect.width << " " << bndRect.height << std::endl;
+            cv::rectangle(image, bndRect, cv::Scalar(0, 0, 255), 4);
+            stopDetected = true;
         }
 
         if (addRemovePt && points[1].size() < (size_t)MAX_COUNT)
         {
             std::vector<cv::Point2f> tmp;
             tmp.push_back(point);
-            cornerSubPix(gray, tmp, winSize, cv::Size(-1, -1), termcrit);
+//            cornerSubPix(gray, tmp, winSize, cv::Size(-1, -1), termcrit);
             points[1].push_back(tmp[0]);
             addRemovePt = false;
         }
@@ -118,7 +196,12 @@ void ObjectTrackingLK::Run(cv::VideoCapture & capture)
         }
 
         std::swap(points[1], points[0]);
+        std::swap(prevMovedPts, movedPts);
         cv::swap(prevGray, gray);
+        if (stopDetected) {
+            cv::waitKey(0);
+            stopDetected = false;
+        }
     }
 }
 

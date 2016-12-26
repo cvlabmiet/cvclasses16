@@ -3,9 +3,11 @@
 ///@Author: Sidorov Stepan
 ///@Date: 07.12.2015
 
-#include "stdafx.h"
-
 #pragma once
+
+#include <string>
+
+#include <opencv2/videoio.hpp>
 
 class IObjectTracking
 {
