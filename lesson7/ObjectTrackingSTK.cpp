@@ -3,8 +3,11 @@
 ///@Author: Sidorov Stepan and Kuksova Svetlana
 ///@Date: 20.12.2015
 
-#include "stdafx.h"
 #include "ObjectTrackingSTK.h"
+
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <iostream>
 
 void ObjectTrackingSTK::Run(cv::VideoCapture & capture)
 {

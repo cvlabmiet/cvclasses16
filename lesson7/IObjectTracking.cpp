@@ -3,7 +3,6 @@
 ///@Author: Sidorov Stepan
 ///@Date: 07.12.2015
 
-#include "stdafx.h"
 #include "IObjectTracking.h"
 #include "ObjectTrackingLK.h"
 #include "ObjectTrackingTK.h"

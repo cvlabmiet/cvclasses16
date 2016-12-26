@@ -3,7 +3,6 @@
 ///@Author: Sidorov Stepan and Kuksova Svetlana
 ///@Date: 20.12.2015
 
-#include "stdafx.h"
 #include "IObjectTracking.h"
 
 #pragma once

@@ -103,11 +103,16 @@
     <ClCompile Include="gmm.cpp" />
     <ClCompile Include="kmeans.cpp" />
     <ClCompile Include="main.cpp" />
+<<<<<<< HEAD
+    <ClCompile Include="watershed.cpp">
+    <ClCompile Include="graphcut.cpp">
+=======
     <ClCompile Include="otsuthreshold.cpp" />
     <ClCompile Include="graphcut.cpp" />
 	<ClCompile Include="splitAndMerge.cpp" />
     <ClCompile Include="watershed.cpp">
     <ClCompile Include="gabortexture.cpp">
+>>>>>>> 0d92410629eac97608d30f4025030361120abca3
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
