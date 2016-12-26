@@ -7,8 +7,8 @@
 
 #include <iostream>
 
-#include "opencv2\video\video.hpp"
-#include "opencv2\highgui\highgui.hpp"
+#include <opencv2/video/video.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include "SegmentMotionDiff.h"
 #include "SegmentMotionBU.h"
@@ -16,10 +16,14 @@
 #include "SegmentMotionMinMax.h"
 #include "SegmentMotion1G.h"
 
+#include "fakevideocapture.h"
+
 ///////////////////////////////////////////////////////////////////////////////
 void SegmentMotionBase::Run()
 {
-    cv::VideoCapture capture(0);
+    cv::Mat img = cv::imread("fgd.jpg");
+    FakeVideoCapture capture(Shape::romb, img, 100);
+//    cv::VideoCapture capture(0);
 
     if (!capture.isOpened())
     {
@@ -32,9 +36,10 @@ void SegmentMotionBase::Run()
     while (true)
     {
         m_foreground = process(capture);
+        capture.calc_metrics(m_foreground);
         cv::imshow(GetName(), m_foreground);
 
-        if (cv::waitKey(1) >= 0)
+        if (cv::waitKey(1) == 'q')
         {
             break;
         }

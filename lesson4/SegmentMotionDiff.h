@@ -9,7 +9,7 @@
 
 #include "SegmentMotionBase.h"
 
-#include "opencv2\core\mat.hpp"
+#include <opencv2/core/mat.hpp>
 
 ///@class SegmentMotionDiff
 /// Demonstrates the algorithm of simplest background subtraction with

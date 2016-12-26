@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include "opencv2\core\mat.hpp"
+#include <opencv2/core/mat.hpp>
 
 namespace cv 
 {

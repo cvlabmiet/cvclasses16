@@ -8,9 +8,9 @@
 
 #include "SegmentMotionBase.h"
 
-#include "opencv2\core\mat.hpp"
+#include <opencv2/core/mat.hpp>
 
-#include "opencv2\video\background_segm.hpp"
+#include <opencv2/video/background_segm.hpp>
 
 ///@class SegmentMotionGMM
 /// Demonstrates the gaussian mixture algorithm of background subtraction

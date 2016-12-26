@@ -8,7 +8,7 @@
 #include <iostream>
 #include <list>
 
-#include "opencv2\core\mat.hpp"
+#include <opencv2/core/mat.hpp>
 
 #include "SegmentMotionBase.h"
 
