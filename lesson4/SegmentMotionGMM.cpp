@@ -25,13 +25,14 @@ cv::Mat SegmentMotionGMM::process(cv::VideoCapture& capture)
     cv::Mat result;
     m_algorithmPtr->apply(currentFrame, result);
     return result;
+//    return currentFrame;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void SegmentMotionGMM::createGUI()
 {
     const std::string windowName = GetName();
-    cv::namedWindow(windowName);
+    cv::namedWindow(windowName, CV_WINDOW_NORMAL);
 
     m_params.learningRate = 30;
     m_params.history = 30;
